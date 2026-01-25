@@ -1,0 +1,12 @@
+fastapi
+uvicorn
+python-multipart
+pandas
+plotly
+langchain
+langchain-groq
+langchain-experimental
+tabulate
+python-dotenv
+openpyxl
+pypdf
