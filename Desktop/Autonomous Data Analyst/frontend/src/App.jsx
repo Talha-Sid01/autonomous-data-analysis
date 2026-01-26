@@ -5,7 +5,7 @@ import ChatMessage from './components/ChatMessage';
 
 // Configure Axios
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8000',
+    baseURL: import.meta.env.VITE_API_URL || 'https://autonomous-data-analysis-production.up.railway.app',
 });
 
 function App() {
