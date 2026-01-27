@@ -3,9 +3,16 @@ import axios from 'axios';
 import { Send, Upload, FileText, Activity, Database } from 'lucide-react';
 import ChatMessage from './components/ChatMessage';
 
-// Configure Axios
+// ---------------------------------------------------------
+// FIX 1: FORCE THE RAILWAY URL (Bypass .env variables)
+// ---------------------------------------------------------
+const API_URL = 'https://autonomous-data-analysis-production.up.railway.app';
+
 const api = axios.create({
-    baseURL: import.meta.env.VITE_API_URL || 'https://autonomous-data-analysis-production.up.railway.app',
+    baseURL: API_URL, 
+    headers: {
+        'Content-Type': 'application/json',
+    }
 });
 
 function App() {
@@ -54,6 +61,8 @@ function App() {
             setMessages(prev => [...prev, { text: `System: Dataset "${file.name}" loaded successfully. I am now ready to analyze it.`, role: 'bot', plot: null }]);
         } catch (error) {
             console.error("Upload error:", error);
+            // FIX 2: Mobile Debugging Alert
+            alert("Upload Failed: " + (error.response?.data?.detail || error.message));
             setUploadStatus("Upload failed.");
         }
     };
@@ -68,6 +77,7 @@ function App() {
         setIsLoading(true);
 
         try {
+            // Explicitly using the forced URL
             const response = await api.post('/chat', { query: userMessage.text });
             const data = response.data;
 
@@ -80,10 +90,24 @@ function App() {
             setMessages(prev => [...prev, botMessage]);
         } catch (error) {
             console.error("Chat error:", error);
+            
+            // ---------------------------------------------------------
+            // FIX 3: MOBILE DEBUGGER - This popup will tell you the error on your phone
+            // ---------------------------------------------------------
             let errorMsg = "Sorry, something went wrong.";
-            if (error.response && error.response.data && error.response.data.detail) {
-                errorMsg = `Error: ${error.response.data.detail}`;
+            if (error.response) {
+                // Server responded with an error (e.g., 400, 500)
+                errorMsg = `Server Error (${error.response.status}): ${JSON.stringify(error.response.data)}`;
+                alert(errorMsg); 
+            } else if (error.request) {
+                // The request was made but no response (Network Error)
+                errorMsg = "Network Error: Could not reach the server. Please check your connection.";
+                alert("Network Error: " + API_URL + " is not reachable.");
+            } else {
+                errorMsg = `Error: ${error.message}`;
+                alert(errorMsg);
             }
+
             setMessages(prev => [...prev, { text: errorMsg, role: 'bot', plot: null }]);
         } finally {
             setIsLoading(false);
@@ -92,9 +116,8 @@ function App() {
 
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-blue-500/30">
-            {/* Sidebar */}
+            {/* Sidebar - Hidden on mobile by default in CSS, keeping layout same */}
             <div className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col p-6 hidden md:flex">
-                {/* Logo Area */}
                 <div className="flex items-center space-x-3 mb-10">
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-blue-900/20">
                         <Activity className="w-6 h-6 text-white" />
@@ -105,7 +128,6 @@ function App() {
                     </div>
                 </div>
 
-                {/* Dataset Control */}
                 <div className="mb-8">
                     <h2 className="text-xs uppercase text-slate-500 font-bold tracking-wider mb-4 flex items-center">
                         <Database className="w-3 h-3 mr-2" />
@@ -146,7 +168,6 @@ function App() {
                     )}
                 </div>
 
-                {/* Feature List / Info */}
                 <div className="flex-1 space-y-4">
                     <div className="p-4 rounded-xl bg-slate-800/50 border border-slate-800">
                         <h3 className="text-sm font-medium text-slate-300 mb-2">Capabilities</h3>
@@ -166,18 +187,13 @@ function App() {
 
             {/* Main Chat Area */}
             <div className="flex-1 flex flex-col relative bg-slate-950">
-                {/* Header */}
                 <header className="h-16 border-b border-slate-800/50 flex items-center justify-between px-6 bg-slate-950/80 backdrop-blur-md z-10 sticky top-0">
                     <div className="flex items-center space-x-3">
                         <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></div>
                         <h2 className="text-sm font-medium text-slate-200">Session Active</h2>
                     </div>
-                    <div className="md:hidden">
-                        {/* Mobile Menu Icon Placeholder */}
-                    </div>
                 </header>
 
-                {/* Messages */}
                 <div className="flex-1 overflow-y-auto px-4 py-6 md:px-12 md:py-8 space-y-8 scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
                     {messages.map((msg, idx) => (
                         <ChatMessage key={idx} message={msg} />
@@ -195,7 +211,6 @@ function App() {
                     <div ref={messagesEndRef} />
                 </div>
 
-                {/* Input Area */}
                 <div className="p-4 md:p-6 bg-slate-950 border-t border-slate-800/50">
                     <form onSubmit={handleSend} className="relative max-w-4xl mx-auto group">
                         <div className="absolute inset-0 bg-gradient-to-r from-blue-600/20 to-purple-600/20 rounded-2xl blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
