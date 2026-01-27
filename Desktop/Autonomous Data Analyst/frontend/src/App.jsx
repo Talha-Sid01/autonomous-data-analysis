@@ -52,17 +52,24 @@ function App() {
         setUploadStatus("Uploading...");
 
         try {
-            await api.post('/upload', formData, {
-                headers: {
-                    'Content-Type': 'multipart/form-data',
-                },
-            });
+            // ✅ FIX: Removed the manual 'Content-Type' header.
+            // Axios will automagically add the correct boundary for the file.
+            await api.post('/upload', formData);
+            
             setUploadStatus(`Uploaded: ${file.name}`);
             setMessages(prev => [...prev, { text: `System: Dataset "${file.name}" loaded successfully. I am now ready to analyze it.`, role: 'bot', plot: null }]);
         } catch (error) {
             console.error("Upload error:", error);
-            // FIX 2: Mobile Debugging Alert
-            alert("Upload Failed: " + (error.response?.data?.detail || error.message));
+            
+            // Enhanced error message for your mobile popup
+            let errorDetail = error.message;
+            if (error.response) {
+                errorDetail = `Server Error ${error.response.status}: ${JSON.stringify(error.response.data)}`;
+            } else if (error.code === "ERR_NETWORK") {
+                errorDetail = "Network Error: Server is unreachable or CORS blocked.";
+            }
+            
+            alert(`Upload Failed: ${errorDetail}`);
             setUploadStatus("Upload failed.");
         }
     };
