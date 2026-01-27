@@ -10,9 +10,7 @@ const API_URL = 'https://autonomous-data-analysis-production.up.railway.app';
 
 const api = axios.create({
     baseURL: API_URL, 
-    headers: {
-        'Content-Type': 'application/json',
-    }
+    // removed the 'headers' object completely
 });
 
 function App() {
