@@ -6,7 +6,7 @@ import ChatMessage from './components/ChatMessage';
 // ---------------------------------------------------------
 // FIX 1: FORCE THE RAILWAY URL (Bypass .env variables)
 // ---------------------------------------------------------
-const API_URL = 'https://autonomous-data-analysis-production.up.railway.app';
+const API_URL = '/api';
 
 const api = axios.create({
     baseURL: API_URL, 
