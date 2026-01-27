@@ -25,7 +25,7 @@ app.add_middleware(
         "https://autonomous-data-analysis-174q.vercel.app",           # Your Vercel deployment ID
         "https://autonomous-data-analysis-n4w7t014m.vercel.app"       # Your other Vercel alias (from screenshots)
     ],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
