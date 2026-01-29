@@ -3,14 +3,12 @@ import axios from 'axios';
 import { Send, Upload, FileText, Activity, Database } from 'lucide-react';
 import ChatMessage from './components/ChatMessage';
 
-// ---------------------------------------------------------
-// FIX 1: FORCE THE RAILWAY URL (Bypass .env variables)
-// ---------------------------------------------------------
-const API_URL = '/api';
+// ✅ CORRECT: Direct link to Railway
+const API_URL = 'https://autonomous-data-analysis-production.up.railway.app';
 
+// ✅ CORRECT: No 'headers' object. Let Axios handle it automatically.
 const api = axios.create({
-    baseURL: API_URL, 
-    // removed the 'headers' object completely
+    baseURL: API_URL
 });
 
 function App() {
@@ -38,6 +36,9 @@ function App() {
         }
     };
 
+    // ------------------------------------------------------------
+    // THE CRITICAL FIX: CLEAN UPLOAD FUNCTION
+    // ------------------------------------------------------------
     const handleUpload = async () => {
         if (!file) {
             setUploadStatus("Please select a file first.");
@@ -50,23 +51,20 @@ function App() {
         setUploadStatus("Uploading...");
 
         try {
-            // ✅ FIX: Removed the manual 'Content-Type' header.
-            // Axios will automagically add the correct boundary for the file.
+            // No manual headers here. Axios adds the 'Boundary' automatically.
             await api.post('/upload', formData);
             
             setUploadStatus(`Uploaded: ${file.name}`);
             setMessages(prev => [...prev, { text: `System: Dataset "${file.name}" loaded successfully. I am now ready to analyze it.`, role: 'bot', plot: null }]);
         } catch (error) {
             console.error("Upload error:", error);
-            
-            // Enhanced error message for your mobile popup
             let errorDetail = error.message;
             if (error.response) {
+                // This will show us the REAL error from the server (e.g. 500, 422)
                 errorDetail = `Server Error ${error.response.status}: ${JSON.stringify(error.response.data)}`;
             } else if (error.code === "ERR_NETWORK") {
-                errorDetail = "Network Error: Server is unreachable or CORS blocked.";
+                errorDetail = "Network Error (CORS or Connection Refused)";
             }
-            
             alert(`Upload Failed: ${errorDetail}`);
             setUploadStatus("Upload failed.");
         }
@@ -82,7 +80,6 @@ function App() {
         setIsLoading(true);
 
         try {
-            // Explicitly using the forced URL
             const response = await api.post('/chat', { query: userMessage.text });
             const data = response.data;
 
@@ -95,33 +92,23 @@ function App() {
             setMessages(prev => [...prev, botMessage]);
         } catch (error) {
             console.error("Chat error:", error);
-            
-            // ---------------------------------------------------------
-            // FIX 3: MOBILE DEBUGGER - This popup will tell you the error on your phone
-            // ---------------------------------------------------------
             let errorMsg = "Sorry, something went wrong.";
             if (error.response) {
-                // Server responded with an error (e.g., 400, 500)
-                errorMsg = `Server Error (${error.response.status}): ${JSON.stringify(error.response.data)}`;
-                alert(errorMsg); 
-            } else if (error.request) {
-                // The request was made but no response (Network Error)
-                errorMsg = "Network Error: Could not reach the server. Please check your connection.";
-                alert("Network Error: " + API_URL + " is not reachable.");
+                 errorMsg = `Server Error (${error.response.status}): ${JSON.stringify(error.response.data)}`;
             } else {
-                errorMsg = `Error: ${error.message}`;
-                alert(errorMsg);
+                 errorMsg = `Error: ${error.message}`;
             }
-
+            alert(errorMsg); 
             setMessages(prev => [...prev, { text: errorMsg, role: 'bot', plot: null }]);
         } finally {
             setIsLoading(false);
         }
     };
-
+    
+    // ... REST OF THE FILE (RETURN JSX) STAYS THE SAME ...
     return (
         <div className="flex h-screen bg-slate-950 text-slate-100 overflow-hidden font-sans selection:bg-blue-500/30">
-            {/* Sidebar - Hidden on mobile by default in CSS, keeping layout same */}
+            {/* Sidebar */}
             <div className="w-80 bg-slate-900 border-r border-slate-800 flex flex-col p-6 hidden md:flex">
                 <div className="flex items-center space-x-3 mb-10">
                     <div className="bg-gradient-to-br from-blue-600 to-indigo-600 p-2.5 rounded-xl shadow-lg shadow-blue-900/20">
