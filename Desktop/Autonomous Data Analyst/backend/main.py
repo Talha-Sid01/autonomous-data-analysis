@@ -19,12 +19,7 @@ app = FastAPI(title="The Autonomous Data Analyst")
 # CORS Setup - Strictly allow ONLY your apps
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",                                      # For local testing
-        "https://autonomous-data-analysis.vercel.app",                # Your main domain
-        "https://autonomous-data-analysis-174q.vercel.app",           # Your Vercel deployment ID
-        "https://autonomous-data-analysis-n4w7t014m.vercel.app"       # Your other Vercel alias (from screenshots)
-    ],
+    allow_origins=["*"],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
